@@ -6,7 +6,7 @@ app = FastAPI(title="AI Assistant Platform")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # عنوان React (Vite) أثناء التطوير
+    allow_origins=["http://localhost:5173"], 
     allow_methods=["*"],
     allow_headers=["*"],
 )

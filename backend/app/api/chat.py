@@ -22,7 +22,7 @@ class ChatResponse(BaseModel):
 @router.post("", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     if not request.message.strip():
-        raise HTTPException(status_code=400, detail="الرسالة ما تنلحقش تكون فاضية.")
+        raise HTTPException(status_code=400, detail="Message cannot be empty.")
 
     try:
         history_dicts = [msg.model_dump() for msg in request.history]
@@ -35,8 +35,8 @@ async def chat(request: ChatRequest):
         error_msg = str(e).lower()
 
         if "api key" in error_msg or "api_key" in error_msg:
-            raise HTTPException(status_code=401, detail="مشكلة بالـ API key، تأكد إنه صحيح.")
+            raise HTTPException(status_code=401, detail="There's a problem with the API key. Please check it.")
         if "quota" in error_msg or "rate" in error_msg:
-            raise HTTPException(status_code=429, detail="تجاوزت الحد المسموح، جرب بعد شوي.")
+            raise HTTPException(status_code=429, detail="Rate limit exceeded. Please try again shortly.")
 
-        raise HTTPException(status_code=500, detail="صار في مشكلة، حاول مرة تانية.")
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
