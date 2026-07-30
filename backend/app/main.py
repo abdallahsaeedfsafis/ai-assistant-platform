@@ -6,7 +6,10 @@ app = FastAPI(title="AI Assistant Platform")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], 
+    allow_origins=[
+        "http://localhost:5173",                             
+        "https://ai-assistant-platform-web.onrender.com",      
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
