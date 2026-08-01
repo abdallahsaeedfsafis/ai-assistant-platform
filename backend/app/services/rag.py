@@ -4,14 +4,17 @@ from app.core.llm_client import generate_chat_response
 
 async def generate_hybrid_response(message: str, history: list[dict]) -> str:
     """
-    يدور بالملفات المرفوعة أولاً. لو لقى معلومة مرتبطة فعلاً بالسؤال، يستخدمها.
-    لو ما لقى شي مرتبط، يتجاهل الملفات تماماً ويجاوب من معرفته العامة (زي أي شات عادي).
+    Searches uploaded documents first. If relevant content is found, uses it.
+    If nothing relevant is found, falls back to general knowledge — but stays
+    honest if the question specifically asks about "this project" or "this document".
     """
     relevant_chunks = search_relevant_chunks(message, top_k=4)
 
     if not relevant_chunks:
-        # ما في معلومة مرتبطة بالملفات — رد عادي زي أي مساعد
-        return await generate_chat_response(message, history)
+        safe_message = f"""{message}
+
+If this question asks about specific details of "this project", "this document", or similar, and you don't actually have that information, say clearly that you don't have that specific information instead of guessing or making up an answer. Otherwise, answer normally using your own general knowledge."""
+        return await generate_chat_response(safe_message, history)
 
     context_text = "\n\n---\n\n".join(relevant_chunks)
 

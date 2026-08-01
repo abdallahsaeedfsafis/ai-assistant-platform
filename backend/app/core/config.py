@@ -12,6 +12,7 @@ class Settings:
     GROK_API_KEY: str = os.getenv("GROK_API_KEY", "")
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "")
+    JINA_API_KEY: str = os.getenv("JINA_API_KEY", "")
 
     APP_NAME: str = "AI Assistant Platform"
 

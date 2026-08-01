@@ -55,8 +55,10 @@ async def upload_pdf(file: UploadFile = File(...), x_admin_password: str | None 
 
     try:
         chunks_added = add_document_chunks(doc_id, chunks)
-    except Exception:
-        raise HTTPException(status_code=500, detail="Failed to process the document. Please try again.")
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to process the document: {str(e)}")
 
     return UploadResponse(doc_id=doc_id, filename=file.filename, chunks_added=chunks_added)
 

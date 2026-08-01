@@ -5,9 +5,8 @@ _client = None
 _collection = None
 COLLECTION_NAME = "documents"
 
-# كل ما قلّت هذي القيمة، كل ما صار الشرط أصعب (يعني لازم تشابه أقوى عشان نعتبره "مرتبط")
-RELEVANCE_THRESHOLD = 0.45
-
+# Adjust this after checking real distance values printed below
+RELEVANCE_THRESHOLD = 0.72
 
 def _get_collection():
     global _client, _collection
@@ -32,10 +31,6 @@ def add_document_chunks(doc_id: str, chunks: list[str]) -> int:
 
 
 def search_relevant_chunks(query: str, top_k: int = 4) -> list[str]:
-    """
-    يرجع بس القطع اللي تشابهها الفعلي أقوى من RELEVANCE_THRESHOLD.
-    لو السؤال مش متعلق بأي ملف مرفوع، بترجع قائمة فاضية (يعني: جاوب من معرفتك العامة).
-    """
     collection = _get_collection()
     if collection.count() == 0:
         return []
