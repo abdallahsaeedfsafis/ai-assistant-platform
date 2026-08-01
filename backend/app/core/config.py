@@ -5,12 +5,13 @@ load_dotenv()
 
 
 class Settings:
-    # LLM_PROVIDER يحدد أي مزود نستخدم: "gemini" أو "grok" أو "groq"
+    # LLM_PROVIDER
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "groq").lower()
 
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GROK_API_KEY: str = os.getenv("GROK_API_KEY", "")
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "")
 
     APP_NAME: str = "AI Assistant Platform"
 
