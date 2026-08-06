@@ -34,6 +34,7 @@ export default function ChatInput({ onSend, disabled, value, onValueChange, plac
 
         <textarea
           ref={textareaRef}
+          dir="auto"
           className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none resize-none py-3 px-2 text-body-md text-on-surface placeholder:text-outline/60"
           placeholder={placeholder}
           rows={1}

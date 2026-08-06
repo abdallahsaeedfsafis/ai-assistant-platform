@@ -2,6 +2,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export async function sendChatMessage(message, history) {
   let response;
+
   try {
     response = await fetch(`${API_BASE_URL}/api/chat`, {
       method: "POST",
@@ -13,10 +14,12 @@ export async function sendChatMessage(message, history) {
   }
 
   const data = await response.json().catch(() => ({}));
+
   if (!response.ok) {
     throw new Error(data.detail || "Something went wrong. Please try again.");
   }
-  return data.reply;
+
+  return { reply: data.reply, toolsUsed: data.tools_used || [] };
 }
 
 export async function askDocumentQuestion(question) {

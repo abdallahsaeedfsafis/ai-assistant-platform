@@ -1,4 +1,18 @@
-export default function Message({ role, content, timestamp }) {
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
+import { sanitizeMathText } from "../lib/sanitizeMath";
+
+const TOOL_LABELS = {
+  calculate: { icon: "calculate", label: "Calculator" },
+  get_weather: { icon: "partly_cloudy_day", label: "Weather" },
+  search_web: { icon: "travel_explore", label: "Web Search" },
+  search_documents: { icon: "description", label: "Documents" },
+};
+
+export default function Message({ role, content, timestamp, toolsUsed = [] }) {
   const isUser = role === "user";
 
   return (
@@ -16,6 +30,23 @@ export default function Message({ role, content, timestamp }) {
       </div>
 
       <div className={`flex flex-col max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
+        {!isUser && toolsUsed.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-1.5">
+            {toolsUsed.map((tool, i) => {
+              const info = TOOL_LABELS[tool] || { icon: "build", label: tool };
+              return (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-label-sm"
+                >
+                  <span className="material-symbols-outlined text-sm">{info.icon}</span>
+                  {info.label}
+                </span>
+              );
+            })}
+          </div>
+        )}
+
         <div
           className={`p-4 rounded-2xl shadow-sm ${
             isUser
@@ -23,13 +54,13 @@ export default function Message({ role, content, timestamp }) {
               : "bg-chat-ai-bubble border border-border-subtle rounded-tl-sm"
           }`}
         >
-          <p className="text-body-md whitespace-pre-wrap">{content}</p>
+          <div dir="auto" className="text-body-md prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1">
+            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+              {sanitizeMathText(content)}
+            </ReactMarkdown>
+          </div>
         </div>
-        <span
-          className={`text-label-sm text-on-surface-variant mt-1 ${
-            isUser ? "mr-1" : "ml-1"
-          }`}
-        >
+        <span className={`text-label-sm text-on-surface-variant mt-1 ${isUser ? "mr-1" : "ml-1"}`}>
           {isUser ? timestamp : `Assistant • ${timestamp}`}
         </span>
       </div>

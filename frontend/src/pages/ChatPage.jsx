@@ -23,6 +23,7 @@ export default function ChatPage() {
 
   const handleSend = async (text) => {
     setError(null);
+
     const userMessage = { role: "user", content: text, timestamp: nowLabel() };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
@@ -30,8 +31,12 @@ export default function ChatPage() {
 
     try {
       const history = messages.map(({ role, content }) => ({ role, content }));
-      const reply = await sendChatMessage(text, history);
-      setMessages([...updatedMessages, { role: "assistant", content: reply, timestamp: nowLabel() }]);
+      const { reply, toolsUsed } = await sendChatMessage(text, history);
+
+      setMessages([
+        ...updatedMessages,
+        { role: "assistant", content: reply, timestamp: nowLabel(), toolsUsed },
+      ]);
     } catch (err) {
       setError(err.message);
     } finally {

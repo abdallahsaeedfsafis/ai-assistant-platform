@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.services.rag import generate_hybrid_response
+from app.services.agent import generate_agent_response
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -17,6 +17,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     reply: str
+    tools_used: list[str] = []
 
 
 @router.post("", response_model=ChatResponse)
@@ -26,8 +27,8 @@ async def chat(request: ChatRequest):
 
     try:
         history_dicts = [msg.model_dump() for msg in request.history]
-        reply = await generate_hybrid_response(request.message, history_dicts)
-        return ChatResponse(reply=reply)
+        result = await generate_agent_response(request.message, history_dicts)
+        return ChatResponse(reply=result["answer"], tools_used=result["tools_used"])
 
     except HTTPException:
         raise

@@ -66,3 +66,7 @@ async def upload_pdf(file: UploadFile = File(...), x_admin_password: str | None 
 @router.get("/status")
 async def rag_status():
     return {"chunks_stored": get_document_count()}
+
+
+
+# uvicorn app.main:app --reload --port 8000
