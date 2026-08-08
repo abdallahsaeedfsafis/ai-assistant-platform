@@ -27,6 +27,10 @@ export default function Sidebar() {
           <span className="material-symbols-outlined">admin_panel_settings</span>
           <span className="text-body-md">Admin</span>
         </NavLink>
+        <NavLink to="/playground" className={linkClass}>
+          <span className="material-symbols-outlined">science</span>
+          <span className="text-body-md">Prompt Lab</span>
+        </NavLink>
       </nav>
     </aside>
   );

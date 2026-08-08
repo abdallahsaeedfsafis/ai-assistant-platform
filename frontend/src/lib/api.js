@@ -70,3 +70,25 @@ export async function uploadPdf(file, password) {
   }
   return data; // { doc_id, filename, chunks_added }
 }
+
+export async function getPlaygroundCategories() {
+  const response = await fetch(`${API_BASE_URL}/api/playground/categories`);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || "Couldn't load categories.");
+  }
+  return data.categories;
+}
+
+export async function comparePromptStrategies(category, input) {
+  const response = await fetch(`${API_BASE_URL}/api/playground/compare`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category, input }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || "Something went wrong. Please try again.");
+  }
+  return data;
+}

@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import ChatPage from "./pages/ChatPage";
 import AdminPage from "./pages/AdminPage";
+import PlaygroundPage from "./pages/PlaygroundPage";
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<ChatPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/playground" element={<PlaygroundPage />} />
         </Routes>
       </main>
     </div>
