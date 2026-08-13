@@ -1,41 +1,79 @@
 import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import Message from "../components/Message";
 import TypingIndicator from "../components/TypingIndicator";
 import EmptyState from "../components/EmptyState";
 import ChatInput from "../components/ChatInput";
 import ErrorBanner from "../components/ErrorBanner";
-import { sendChatMessage } from "../lib/api";
+import { getConversation, sendChatMessage } from "../lib/api";
 
-function nowLabel() {
-  return new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+function formatTime(isoString) {
+  return new Date(isoString).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 }
 
 export default function ChatPage() {
+  const { conversationId } = useParams();
+
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(true);
   const [error, setError] = useState(null);
+  const [activeConversationId, setActiveConversationId] = useState(null);
   const scrollRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function init() {
+      setIsLoadingConversation(true);
+      setMessages([]);
+      setError(null);
+
+      try {
+        const conv = await getConversation(conversationId);
+        if (cancelled) return;
+        setActiveConversationId(conv.id);
+        setMessages(
+          conv.messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+            timestamp: formatTime(m.created_at),
+          }))
+        );
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setIsLoadingConversation(false);
+      }
+    }
+
+    if (conversationId) {
+      init();
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [conversationId]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
   const handleSend = async (text) => {
+    if (!activeConversationId) return;
     setError(null);
 
-    const userMessage = { role: "user", content: text, timestamp: nowLabel() };
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    const userMessage = { role: "user", content: text, timestamp: formatTime(new Date().toISOString()) };
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      const history = messages.map(({ role, content }) => ({ role, content }));
-      const { reply, toolsUsed } = await sendChatMessage(text, history);
-
-      setMessages([
-        ...updatedMessages,
-        { role: "assistant", content: reply, timestamp: nowLabel(), toolsUsed },
+      const { reply, toolsUsed } = await sendChatMessage(activeConversationId, text);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: reply, timestamp: formatTime(new Date().toISOString()), toolsUsed },
       ]);
     } catch (err) {
       setError(err.message);
@@ -43,6 +81,14 @@ export default function ChatPage() {
       setIsLoading(false);
     }
   };
+
+  if (isLoadingConversation) {
+    return (
+      <div className="flex-1 flex items-center justify-center h-screen">
+        <p className="text-on-surface-variant">Loading conversation...</p>
+      </div>
+    );
+  }
 
   const isEmpty = messages.length === 0;
 

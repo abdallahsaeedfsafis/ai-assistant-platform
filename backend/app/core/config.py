@@ -14,6 +14,10 @@ class Settings:
     ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "")
     JINA_API_KEY: str = os.getenv("JINA_API_KEY", "")
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY", "")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "")
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 60 * 24 * 7  
 
     APP_NAME: str = "AI Assistant Platform"
 

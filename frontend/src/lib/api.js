@@ -1,45 +1,121 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-export async function sendChatMessage(message, history) {
-  let response;
+const TOKEN_KEY = "auth_token";
 
-  try {
-    response = await fetch(`${API_BASE_URL}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, history }),
-    });
-  } catch {
-    throw new Error("Couldn't reach the server. Make sure it's running and try again.");
-  }
+export function getToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
 
+export function setToken(token) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+function authHeaders() {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function handleResponse(response) {
   const data = await response.json().catch(() => ({}));
-
   if (!response.ok) {
     throw new Error(data.detail || "Something went wrong. Please try again.");
   }
+  return data;
+}
 
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+export async function signup(email, password) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await handleResponse(response);
+  setToken(data.access_token);
+  return data;
+}
+
+export async function login(email, password) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await handleResponse(response);
+  setToken(data.access_token);
+  return data;
+}
+
+export async function getMe() {
+  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse(response);
+}
+
+export function logout() {
+  clearToken();
+}
+
+// ---------------------------------------------------------------------------
+// Conversations
+// ---------------------------------------------------------------------------
+
+export async function listConversations() {
+  const response = await fetch(`${API_BASE_URL}/api/conversations`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse(response);
+}
+
+export async function createConversation(title = "New conversation") {
+  const response = await fetch(`${API_BASE_URL}/api/conversations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ title }),
+  });
+  return handleResponse(response);
+}
+
+export async function getConversation(conversationId) {
+  const response = await fetch(`${API_BASE_URL}/api/conversations/${conversationId}`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse(response);
+}
+
+export async function deleteConversation(conversationId) {
+  const response = await fetch(`${API_BASE_URL}/api/conversations/${conversationId}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+  });
+  return handleResponse(response);
+}
+
+// ---------------------------------------------------------------------------
+// Chat
+// ---------------------------------------------------------------------------
+
+export async function sendChatMessage(conversationId, message) {
+  const response = await fetch(`${API_BASE_URL}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ conversation_id: conversationId, message }),
+  });
+  const data = await handleResponse(response);
   return { reply: data.reply, toolsUsed: data.tools_used || [] };
 }
 
-export async function askDocumentQuestion(question) {
-  let response;
-  try {
-    response = await fetch(`${API_BASE_URL}/api/rag/ask`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
-    });
-  } catch {
-    throw new Error("Couldn't reach the server. Make sure it's running and try again.");
-  }
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.detail || "Something went wrong. Please try again.");
-  }
-  return data; // { answer, sources, has_context }
-}
+// ---------------------------------------------------------------------------
+// RAG / Admin
+// ---------------------------------------------------------------------------
 
 export async function verifyAdminPassword(password) {
   const response = await fetch(`${API_BASE_URL}/api/rag/verify-admin`, {
@@ -47,11 +123,7 @@ export async function verifyAdminPassword(password) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password }),
   });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.detail || "Invalid password.");
-  }
-  return true;
+  return handleResponse(response);
 }
 
 export async function uploadPdf(file, password) {
@@ -63,20 +135,16 @@ export async function uploadPdf(file, password) {
     headers: { "X-Admin-Password": password },
     body: formData,
   });
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.detail || "Upload failed.");
-  }
-  return data; // { doc_id, filename, chunks_added }
+  return handleResponse(response);
 }
+
+// ---------------------------------------------------------------------------
+// Prompt Playground
+// ---------------------------------------------------------------------------
 
 export async function getPlaygroundCategories() {
   const response = await fetch(`${API_BASE_URL}/api/playground/categories`);
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.detail || "Couldn't load categories.");
-  }
+  const data = await handleResponse(response);
   return data.categories;
 }
 
@@ -86,9 +154,5 @@ export async function comparePromptStrategies(category, input) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ category, input }),
   });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.detail || "Something went wrong. Please try again.");
-  }
-  return data;
+  return handleResponse(response);
 }

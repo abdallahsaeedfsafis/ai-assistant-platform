@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 .env
 chroma_data/
+test_local.db
+test_full.db
+test_auth.db
